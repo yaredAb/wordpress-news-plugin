@@ -28,15 +28,32 @@ class Author_Dashboard {
     //listing author articles
     public function list_author_articles() {
         $user_id = get_current_user_id();
+        $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $date_filter = isset($_GET['date']) ? sanitize_text_field( $_GET['date'] ) : '';
 
         $args = [
             'author' => $user_id,
             'post_type' => 'post',
-            'post_status' => ['draft', 'publish', 'pending', 'future'],
-            'date_query' => []
+            'post_status' => $status_filter ? [$status_filter] : ['draft', 'publish', 'pending', 'future'],
+            'date_query' => $date_filter ? [['after'=>$date_filter]] :[]
         ];
 
         $query = new WP_Query($args);
+        echo '<form method="get" action="">';
+        echo '<input type="hidden" name="page" value="author-dashboard">';
+        echo '<select name="status">';
+        echo '<option value="">All Statuses</option>';
+        $statuses = ['draft', 'pending', 'publish', 'future'];
+        foreach($statuses as $status) {
+            echo '<option value="'.esc_attr($status).'"'.selected($status_filter, $status, false).'>'.ucfirst($status).'</option>';
+        }
+        echo '</select>';
+
+        echo '<input type="date" name="date" value="'.esc_attr($date_filter).'">';
+        echo '<button type="submit" class="button">Filter</button>';
+        echo '</form>';
+
+
         if($query->have_posts()){
             echo '<table class="widefat fixed">';
             echo '<thead><tr><th>Title</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>';
